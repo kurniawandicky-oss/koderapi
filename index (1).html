@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kode Rapi - PDF Merger, Encryptor & Unlocker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --orange: #ff7e33;
+            --green: #10b981;
+            --tosca: #0d9488;
+            --tosca-light: #14b8a6;
+            --bg-gradient: linear-gradient(135deg, #fff5eb 0%, #ecfdf5 50%, #f0fdfa 100%);
+            --brand-gradient: linear-gradient(135deg, #ff7e33 0%, #10b981 50%, #0d9488 100%);
+            --btn-gradient: linear-gradient(135deg, #ff7e33 0%, #14b8a6 100%);
+            --btn-hover: linear-gradient(135deg, #f97316 0%, #0d9488 100%);
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -15px rgba(13, 148, 136, 0.15), 0 0 20px rgba(255, 126, 51, 0.08);
+            width: 100%;
+            max-width: 580px;
+            padding: 36px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--brand-gradient);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .brand-tagline {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            gap: 6px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 12px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--tosca);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        /* Custom Dropzone / File Upload */
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(240, 253, 250, 0.5) 0%, rgba(255, 247, 237, 0.5) 100%);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .upload-box:hover, .upload-box.dragover {
+            border-color: var(--tosca-light);
+            background: rgba(20, 184, 166, 0.06);
+        }
+
+        .upload-box input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--tosca);
+        }
+
+        .upload-subtext {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* File List & Reorder Controls */
+        .file-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .clear-all-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .clear-all-btn:hover {
+            background: #fee2e2;
+        }
+
+        .file-list {
+            list-style: none;
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 12px;
+            gap: 10px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .file-item:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
+        }
+
+        .file-badge {
+            background: linear-gradient(135deg, var(--orange), var(--green));
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .file-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            color: var(--text-main);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .icon-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .icon-btn.cancel {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .icon-btn.cancel:hover {
+            background: #fee2e2;
+        }
+
+        /* Password Input with Eye Toggle */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding: 12px 44px 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: var(--tosca-light);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+        }
+
+        .toggle-eye:hover {
+            color: var(--tosca);
+        }
+
+        .match-indicator {
+            font-size: 12px;
+            margin-top: 6px;
+            font-weight: 500;
+            min-height: 16px;
+        }
+
+        /* Primary Gradient Button */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: var(--btn-gradient);
+            color: white;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px -6px rgba(20, 184, 166, 0.45);
+            transition: all 0.25s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px -6px rgba(255, 126, 51, 0.45);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-box {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13.5px;
+            font-weight: 500;
+            min-height: 20px;
+            padding: 0 8px;
+        }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="brand-header">
+            <div class="brand-logo">kode rapi</div>
+            <div class="brand-tagline">Gabung, Urutkan, Kunci & Buka Proteksi PDF Tanpa Batas</div>
+        </div>
+
+        <!-- Navigasi Tab Fitur -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="mergeTab">Gabung & Kunci PDF</button>
+            <button class="tab-btn" data-tab="unlockTab">Hapus Password PDF</button>
+        </div>
+
+        <!-- TAB 1: GABUNG & PROTEKSI PDF -->
+        <div id="mergeTab" class="tab-content active">
+            <div class="form-group">
+                <label>1. Pilih File PDF (Tanpa Batas Jumlah File)</label>
+                <div class="upload-box" id="mergeDropzone">
+                    <input type="file" id="pdfFilesInput" multiple accept=".pdf">
+                    <span class="upload-icon">📄</span>
+                    <div class="upload-text">Ketuk untuk menambah file PDF</div>
+                    <div class="upload-subtext">Bisa pilih sekaligus atau tambah berkali-kali</div>
+                </div>
+
+                <div id="fileListHeader" class="file-list-header" style="display: none;">
+                    <span id="fileCountText">0 file dipilih (atur urutan di bawah)</span>
+                    <button type="button" class="clear-all-btn" id="clearAllBtn">Hapus Semua</button>
+                </div>
+                <ul id="fileList" class="file-list"></ul>
+            </div>
+
+            <div class="form-group">
+                <label for="pdfPassword">2. Password Baru (Opsional)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="pdfPassword" placeholder="Masukkan password untuk mengunci PDF...">
+                    <button type="button" class="toggle-eye" data-target="pdfPassword" title="Lihat/Tutup Password">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group" id="confirmPasswordGroup" style="display: none;">
+                <label for="pdfPasswordConfirm">3. Ulangi Password (Konfirmasi 2x)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="pdfPasswordConfirm" placeholder="Ketik ulang password yang sama...">
+                    <button type="button" class="toggle-eye" data-target="pdfPasswordConfirm" title="Lihat/Tutup Password">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+                <div id="matchIndicator" class="match-indicator"></div>
+            </div>
+
+            <button type="button" class="submit-btn" id="mergeBtn">Gabungkan & Download PDF</button>
+            <div id="mergeStatus" class="status-box"></div>
+        </div>
+
+        <!-- TAB 2: BATALKAN / HAPUS PASSWORD PDF -->
+        <div id="unlockTab" class="tab-content">
+            <div class="form-group">
+                <label>1. Pilih File PDF yang Terkunci Password</label>
+                <div class="upload-box">
+                    <input type="file" id="lockedPdfInput" accept=".pdf">
+                    <span class="upload-icon">🔓</span>
+                    <div class="upload-text" id="lockedFileText">Ketuk untuk memilih PDF terkunci</div>
+                    <div class="upload-subtext">100% diproses aman di browser Anda</div>
+                </div>
+                <div id="lockedFilePreview" style="display:none; margin-top:10px;">
+                    <div class="file-item">
+                        <div class="file-badge">PDF</div>
+                        <div class="file-info">
+                            <div class="file-name" id="lockedFileName"></div>
+                            <div class="file-size" id="lockedFileSize"></div>
+                        </div>
+                        <button type="button" class="icon-btn cancel" id="cancelLockedFileBtn" title="Batalkan file">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="unlockPassword">2. Masukkan Password PDF Saat Ini</label>
+                <div class="password-wrapper">
+                    <input type="password" id="unlockPassword" placeholder="Masukkan password PDF yang terkunci...">
+                    <button type="button" class="toggle-eye" data-target="unlockPassword" title="Lihat/Tutup Password">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="submit-btn" id="unlockBtn">Hapus Password & Download PDF</button>
+            <div id="unlockStatus" class="status-box"></div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 <strong>kode rapi</strong> &bull; 100% Client-Side Privacy (Tanpa Upload ke Server)
+        </div>
+    </div>
+
+    <script type="module">
+        import { PDFDocument } from 'https://cdn.jsdelivr.net/npm/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.esm.js';
+
+        // ========================
+        // 1. LOGIKA TAB NAVIGASI
+        // ========================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ========================
+        // 2. LOGIKA LIHAT / TUTUP PASSWORD (MATA)
+        // ========================
+        const eyeOpenSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeOffSVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        document.querySelectorAll('.toggle-eye').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetInput = document.getElementById(btn.dataset.target);
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    btn.innerHTML = eyeOffSVG;
+                } else {
+                    targetInput.type = 'password';
+                    btn.innerHTML = eyeOpenSVG;
+                }
+            });
+        });
+
+        // ========================
+        // 3. LOGIKA KONFIRMASI PASSWORD 2X
+        // ========================
+        const pdfPassword = document.getElementById('pdfPassword');
+        const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+        const pdfPasswordConfirm = document.getElementById('pdfPasswordConfirm');
+        const matchIndicator = document.getElementById('matchIndicator');
+
+        function checkPasswordMatch() {
+            const p1 = pdfPassword.value;
+            const p2 = pdfPasswordConfirm.value;
+
+            if (p1.length > 0) {
+                confirmPasswordGroup.style.display = 'block';
+            } else {
+                confirmPasswordGroup.style.display = 'none';
+                pdfPasswordConfirm.value = '';
+                matchIndicator.textContent = '';
+                return;
+            }
+
+            if (p2.length === 0) {
+                matchIndicator.textContent = '';
+            } else if (p1 === p2) {
+                matchIndicator.style.color = '#10b981';
+                matchIndicator.textContent = '✓ Password cocok';
+            } else {
+                matchIndicator.style.color = '#ef4444';
+                matchIndicator.textContent = '✕ Password belum sama';
+            }
+        }
+
+        pdfPassword.addEventListener('input', checkPasswordMatch);
+        pdfPasswordConfirm.addEventListener('input', checkPasswordMatch);
+
+        // ========================
+        // 4. MANAJEMEN FILE PDF (TANPA BATAS, URUTKAN, & CANCEL)
+        // ========================
+        let selectedFiles = [];
+        const pdfFilesInput = document.getElementById('pdfFilesInput');
+        const fileListEl = document.getElementById('fileList');
+        const fileListHeader = document.getElementById('fileListHeader');
+        const fileCountText = document.getElementById('fileCountText');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+
+        pdfFilesInput.addEventListener('change', (e) => {
+            const newFiles = Array.from(e.target.files);
+            selectedFiles = selectedFiles.concat(newFiles);
+            pdfFilesInput.value = ''; // Reset input agar bisa pilih file yang sama lagi jika mau
+            renderFileList();
+        });
+
+        clearAllBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            renderFileList();
+        });
+
+        function renderFileList() {
+            fileListEl.innerHTML = '';
+            if (selectedFiles.length === 0) {
+                fileListHeader.style.display = 'none';
+                return;
+            }
+
+            fileListHeader.style.display = 'flex';
+            fileCountText.textContent = `${selectedFiles.length} file siap digabung (atur urutan):`;
+
+            selectedFiles.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'file-item';
+
+                const sizeKB = (file.size / 1024).toFixed(1);
+                const sizeText = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(2)} MB` : `${sizeKB} KB`;
+
+                li.innerHTML = `
+                    <div class="file-badge">${index + 1}</div>
+                    <div class="file-info">
+                        <div class="file-name" title="${file.name}">${file.name}</div>
+                        <div class="file-size">${sizeText}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button type="button" class="icon-btn move-up" title="Geser ke atas" ${index === 0 ? 'disabled' : ''}>↑</button>
+                        <button type="button" class="icon-btn move-down" title="Geser ke bawah" ${index === selectedFiles.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button type="button" class="icon-btn cancel remove-file" title="Hapus file ini">✕</button>
+                    </div>
+                `;
+
+                // Tombol Geser Atas
+                li.querySelector('.move-up').addEventListener('click', () => {
+                    if (index > 0) {
+                        [selectedFiles[index - 1], selectedFiles[index]] = [selectedFiles[index], selectedFiles[index - 1]];
+                        renderFileList();
+                    }
+                });
+
+                // Tombol Geser Bawah
+                li.querySelector('.move-down').addEventListener('click', () => {
+                    if (index < selectedFiles.length - 1) {
+                        [selectedFiles[index + 1], selectedFiles[index]] = [selectedFiles[index], selectedFiles[index + 1]];
+                        renderFileList();
+                    }
+                });
+
+                // Tombol Cancel / Hapus per File
+                li.querySelector('.remove-file').addEventListener('click', () => {
+                    selectedFiles.splice(index, 1);
+                    renderFileList();
+                });
+
+                fileListEl.appendChild(li);
+            });
+        }
+
+        // ========================
+        // 5. PROSES GABUNG & ENKRIPSI PDF
+        // ========================
+        const mergeBtn = document.getElementById('mergeBtn');
+        const mergeStatus = document.getElementById('mergeStatus');
+
+        mergeBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                alert('Silakan pilih minimal 1 atau lebih file PDF terlebih dahulu!');
+                return;
+            }
+
+            const p1 = pdfPassword.value;
+            const p2 = pdfPasswordConfirm.value;
+
+            if (p1.length > 0 && p1 !== p2) {
+                alert('Password dan konfirmasi ulang password tidak cocok! Silakan periksa kembali.');
+                pdfPasswordConfirm.focus();
+                return;
+            }
+
+            mergeBtn.disabled = true;
+            mergeStatus.style.color = '#0d9488';
+            mergeStatus.textContent = 'Memulai proses penggabungan PDF...';
+
+            try {
+                const mergedPdf = await PDFDocument.create();
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    mergeStatus.textContent = `Memproses file ${i + 1} dari ${selectedFiles.length}: ${file.name}`;
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdfDoc = await PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                    copiedPages.forEach(page => mergedPdf.addPage(page));
+                }
+
+                if (p1.length > 0) {
+                    mergeStatus.textContent = 'Mengunci dokumen dengan enkripsi password...';
+                    mergedPdf.encrypt({
+                        userPassword: p1,
+                        ownerPassword: p1,
+                        permissions: {
+                            print: true,
+                            modify: false,
+                            copy: false,
+                        }
+                    });
+                }
+
+                mergeStatus.textContent = 'Menyiapkan file untuk di-download...';
+                const mergedBytes = await mergedPdf.save();
+
+                const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = p1.length > 0 ? 'kode-rapi-terkunci.pdf' : 'kode-rapi-gabung.pdf';
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                mergeStatus.style.color = '#10b981';
+                mergeStatus.textContent = '✓ Berhasil! File PDF sudah ter-download.';
+            } catch (err) {
+                console.error(err);
+                mergeStatus.style.color = '#ef4444';
+                mergeStatus.textContent = '✕ Gagal memproses. Pastikan tidak ada file PDF yang rusak atau masih terkunci password.';
+            } finally {
+                mergeBtn.disabled = false;
+            }
+        });
+
+        // ========================
+        // 6. FITUR BATALKAN / HAPUS PASSWORD PDF
+        // ========================
+        let lockedFile = null;
+        const lockedPdfInput = document.getElementById('lockedPdfInput');
+        const lockedFilePreview = document.getElementById('lockedFilePreview');
+        const lockedFileName = document.getElementById('lockedFileName');
+        const lockedFileSize = document.getElementById('lockedFileSize');
+        const cancelLockedFileBtn = document.getElementById('cancelLockedFileBtn');
+        const unlockPassword = document.getElementById('unlockPassword');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const unlockStatus = document.getElementById('unlockStatus');
+
+        lockedPdfInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                lockedFile = e.target.files[0];
+                lockedFileName.textContent = lockedFile.name;
+                const kb = (lockedFile.size / 1024).toFixed(1);
+                lockedFileSize.textContent = kb > 1024 ? `${(kb / 1024).toFixed(2)} MB` : `${kb} KB`;
+                lockedFilePreview.style.display = 'block';
+                unlockStatus.textContent = '';
+            }
+            lockedPdfInput.value = '';
+        });
+
+        cancelLockedFileBtn.addEventListener('click', () => {
+            lockedFile = null;
+            lockedFilePreview.style.display = 'none';
+            unlockStatus.textContent = '';
+        });
+
+        unlockBtn.addEventListener('click', async () => {
+            if (!lockedFile) {
+                alert('Silakan pilih file PDF yang terkunci terlebih dahulu!');
+                return;
+            }
+
+            const pass = unlockPassword.value;
+            if (!pass) {
+                alert('Masukkan password PDF saat ini untuk membuka kuncinya!');
+                unlockPassword.focus();
+                return;
+            }
+
+            unlockBtn.disabled = true;
+            unlockStatus.style.color = '#0d9488';
+            unlockStatus.textContent = 'Membuka kunci enkripsi PDF...';
+
+            try {
+                const arrayBuffer = await lockedFile.arrayBuffer();
+                // Memuat dokumen dengan password yang diberikan
+                const lockedDoc = await PDFDocument.load(arrayBuffer, { password: pass });
+
+                // Menyalin seluruh halaman ke dokumen baru yang bersih tanpa enkripsi
+                const unlockedDoc = await PDFDocument.create();
+                const pages = await unlockedDoc.copyPages(lockedDoc, lockedDoc.getPageIndices());
+                pages.forEach(p => unlockedDoc.addPage(p));
+
+                unlockStatus.textContent = 'Menyimpan PDF tanpa password...';
+                const unlockedBytes = await unlockedDoc.save();
+
+                const cleanName = lockedFile.name.replace(/\.pdf$/i, '') + '-tanpa-password.pdf';
+                const blob = new Blob([unlockedBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = cleanName;
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                unlockStatus.style.color = '#10b981';
+                unlockStatus.textContent = '✓ Berhasil! Password PDF telah dihapus dan file ter-download.';
+            } catch (err) {
+                console.error(err);
+                unlockStatus.style.color = '#ef4444';
+                unlockStatus.textContent = '✕ Password salah atau jenis enkripsi PDF tidak didukung.';
+            } finally {
+                unlockBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
