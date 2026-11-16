@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gabung & Proteksi PDF</title>
+    <style>
+        :root {
+            --primary-color: #2ea44f;
+            --primary-hover: #2c974b;
+            --primary-disabled: #94d3a2;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #24292f;
+            --text-muted: #57606a;
+            --border-color: #d0d7de;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 480px;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 22px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="file"], input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #f6f8fa;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input[type="file"] {
+            border: 1px dashed #8c959f;
+            cursor: pointer;
+        }
+        input[type="file"]:hover, input[type="password"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background: #ffffff;
+        }
+        .file-list {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            padding-left: 18px;
+        }
+        .file-list li {
+            margin-bottom: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+        }
+        button:disabled {
+            background-color: var(--primary-disabled);
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            min-height: 20px;
+        }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid #eaecef;
+            padding-top: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Gabung & Proteksi PDF</h2>
+        <p class="subtitle">100% diproses di browser Anda — file tidak dikirim ke server mana pun.</p>
+        
+        <div class="form-group">
+            <label for="pdfFiles">1. Pilih File PDF (minimal 2 file):</label>
+            <input type="file" id="pdfFiles" multiple accept=".pdf">
+            <ul id="fileList" class="file-list"></ul>
+        </div>
+
+        <div class="form-group">
+            <label for="pdfPassword">2. Password PDF (Opsional):</label>
+            <input type="password" id="pdfPassword" placeholder="Kosongkan jika tidak ingin dikunci...">
+        </div>
+
+        <button id="mergeBtn">Gabungkan & Download PDF</button>
+        <div id="status"></div>
+
+        <div class="footer">
+            Client-Side PDF Merger & Encryptor
+        </div>
+    </div>
+
+    <script type="module">
+        import { PDFDocument } from 'https://cdn.jsdelivr.net/npm/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.esm.js';
+
+        const mergeBtn = document.getElementById('mergeBtn');
+        const fileInput = document.getElementById('pdfFiles');
+        const fileList = document.getElementById('fileList');
+        const passwordInput = document.getElementById('pdfPassword');
+        const statusDiv = document.getElementById('status');
+
+        fileInput.addEventListener('change', () => {
+            fileList.innerHTML = '';
+            const files = Array.from(fileInput.files);
+            if (files.length > 0) {
+                files.forEach((file) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                    fileList.appendChild(li);
+                });
+            }
+        });
+
+        mergeBtn.addEventListener('click', async () => {
+            if (fileInput.files.length < 2) {
+                alert('Silakan pilih minimal 2 file PDF untuk digabungkan!');
+                return;
+            }
+
+            mergeBtn.disabled = true;
+            statusDiv.style.color = '#57606a';
+            statusDiv.innerText = 'Memulai proses penggabungan PDF...';
+
+            try {
+                const mergedPdf = await PDFDocument.create();
+
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const file = fileInput.files[i];
+                    statusDiv.innerText = `Memproses file ${i + 1} dari ${fileInput.files.length}: ${file.name}`;
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdfDoc = await PDFDocument.load(arrayBuffer);
+                    
+                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                    copiedPages.forEach((page) => {
+                        mergedPdf.addPage(page);
+                    });
+                }
+
+                const password = passwordInput.value;
+
+                if (password.trim() !== '') {
+                    statusDiv.innerText = 'Mengenkripsi dokumen dengan password...';
+                    mergedPdf.encrypt({
+                        userPassword: password,
+                        ownerPassword: password,
+                        permissions: {
+                            print: true,
+                            modify: false,
+                            copy: false,
+                        }
+                    });
+                }
+
+                statusDiv.innerText = 'Menyiapkan file unduhan...';
+                const mergedPdfBytes = await mergedPdf.save();
+
+                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = password.trim() !== '' ? 'pdf-terproteksi.pdf' : 'hasil-gabung.pdf';
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                statusDiv.style.color = '#2ea44f';
+                statusDiv.innerText = 'Berhasil! File PDF Anda telah di-download.';
+            } catch (error) {
+                console.error(error);
+                statusDiv.style.color = '#cf222e';
+                statusDiv.innerText = 'Gagal memproses PDF. Pastikan file tidak rusak atau sudah terkunci password.';
+            } finally {
+                mergeBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>
